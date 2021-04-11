@@ -162,6 +162,9 @@ jQuery(document).ready(function(){
                 ID.push(this.id);
             }
         });
+        $("#" + inpid).on('blur', function() {
+            document.getElementById(divid).remove();
+        });
         $('#' + butid).click(() => {
             var textValue = $('#' + inpid).val();
             if (textValue !== "") {
@@ -205,27 +208,27 @@ jQuery(document).ready(function(){
         var divIn = div.inDiv;
         $(div.maindiv).click(function(e) {
             var parent = document.getElementById(divIn);
-            $.ajax({
-                url: "./php/getText.php",
-                method: "POST",
-                async: false,
-                data: {wall: currWall},
-                dataType: "text",
-                success: (data) => {
-                    $data = $.parseJSON(data);
-                    $inner = "";
-                    $data.forEach(elem => {
-                        $inner += elem + "</div>";
-                    });
-                    //console.log($inner);
-                    parent.innerHTML = $inner;
+            // $.ajax({
+            //     url: "./php/getText.php",
+            //     method: "POST",
+            //     async: false,
+            //     data: {wall: currWall},
+            //     dataType: "text",
+            //     success: (data) => {
+            //         $data = $.parseJSON(data);
+            //         $inner = "";
+            //         $data.forEach(elem => {
+            //             $inner += elem + "</div>";
+            //         });
+            //         //console.log($inner);
+            //         parent.innerHTML = $inner;
 
-                    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-                    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                      return new bootstrap.Tooltip(tooltipTriggerEl);
-                    });
-                }
-            });
+            //         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            //         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            //           return new bootstrap.Tooltip(tooltipTriggerEl);
+            //         });
+            //     }
+            // });
             console.log(clicker);
             if (!clicker) {
                 $(div.maindiv).click(mainClick(divIn, div.maindiv, e));
@@ -253,7 +256,6 @@ jQuery(document).ready(function(){
             $.ajax({
                 url: "./php/getText.php",
                 method: "POST",
-                async: true,
                 data: {wall: div.wall},
                 dataType: "text",
                 success: (data) => {
@@ -299,7 +301,6 @@ jQuery(document).ready(function(){
             $.ajax({
                 url: "./php/getText.php",
                 method: "POST",
-                async: true,
                 data: {wall: div.wall},
                 dataType: "text",
                 success: (data) => {
