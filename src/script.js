@@ -30,18 +30,27 @@ jQuery(document).ready(function(){
             }
         });
     };
+
+    /* MODAL */
     var alias = document.getElementById("alias");
+    var nextButton = document.querySelector("#submit");
+    $('#submit').prop("disabled", true); 
+    $("#alias").keyup(() => {
+        console.log(alias.value)
+        if (alias.value !== '') {
+            $('#submit').prop("disabled", false); 
+        } else {
+            $('#submit').prop("disabled", true); 
+        }
+    });
+
     $("#anonym").click(() => {
         alias = "anonymous";
         closePopup();
     });
     $("#submit").click(()=> {
-        if (alias.value === "") {
-            alias.classList.add("is-invalid");
-        } else {
-            closePopup();
-        }
-    alias = alias.value;
+        alias = alias.value;
+        closePopup();
     });
     var currWall = 1;
     if(!iOS()) { 
@@ -50,7 +59,6 @@ jQuery(document).ready(function(){
     var mainOutDiv = [ {maindiv: "#outMaria" , inDiv: "maria" }, {maindiv: "#outRose" , inDiv: "rose" }, {maindiv: "#outSheena" , inDiv: "sheena" }];
     var customOverlay = document.querySelector('.custom-overlay');
 
-    //document.getElementById("popup").setAttribute("data-type", "popup");
     AnimateTransition({
         container: container,
         blockIn: "#popup",
@@ -61,79 +69,171 @@ jQuery(document).ready(function(){
         onTransitionEnd: function (blockIn, blockOut, container, event) {
         }
     });
+    var oldChild;
+    function mainClick(divIn, main, e) {
+        var parent = document.getElementById(divIn);
 
+        var empty;
+        function inputFocus(input) {
+            input.focus();
+            input.onfocus = function () {
+                window.scrollTo(0, 0);
+                document.body.scrollTop = 0;
+            }
+            input.scrollIntoView();
+        };
+
+        var randomnumber = Math.floor(Math.random() * (999999 - 500 + 500)) + 999999;
+        var input = document.createElement("input");
+        var div = document.createElement("div");
+        var post = document.createElement("button");
+        var styles = document.getElementById("style");
+
+        var butid = "but" + randomnumber;
+        var inpid = "inp" + randomnumber;
+        var divid = "div" + randomnumber;
+
+        post.id = butid;
+        input.id = inpid;
+        input.size = 1;
+        input.style = "border: 0; color: white; outline: 1; background: transparent;";
+        div.style = "position: absolute;";
+        div.id = divid;
+
+        parent.appendChild(div); 
+        div.appendChild(input); 
+        div.appendChild(post); 
+
+        post.innerHTML = "Post";
+        $('#' + inpid).prop('maxLength', 36);
+        $('#' + divid).html(input.focus()).offset({ top: e.pageY, left: e.pageX});
+        styles.style.display = "block";
+
+        var position = $('#' + divid).position();
+
+        var leftPost = position.left/$(window).width() * 100;
+        var topPost = position.top/$(window).height() *100;
+        styles.style.top = (topPost - 4) + "%";
+        styles.style.left = (leftPost - 2) + "%";
+        inputFocus(input);
+        
+        input.style.fontFamily = document.getElementById('fontSelect').value;
+        input.style.fontSize = document.getElementById('sizeSelect').value;
+        input.style.color = document.getElementById('color').value;
+        var inputSize = input.style.fontSize;
+        var inputColor = input.style.color;
+        var inputFont = input.style.fontFamily;
+
+        $('#fontSelect').change(function() {
+            input.style.fontFamily = $(this).val();
+            inputFont = input.style.fontFamily;
+            inputFocus(input)
+        });
+        $('#sizeSelect').change(function() {
+            input.style.fontSize = $(this).val();
+            inputSize = input.style.fontSize;
+            inputFocus(input)
+        });
+        var inpudt = document.getElementById('color');
+        $('#color').on('input', function() {
+            setTimeout(()=>{
+                inpudt.setAttribute('type','text');
+                inpudt.setAttribute('type','color');
+          }, 100);
+            input.style.color = $(this).val();
+            inputColor = input.style.color
+            inputFocus(input)
+        });
+
+        inputFocus(input);
+        document.querySelector('#' + divid).scrollIntoView({
+          behavior: 'smooth'
+        });
+        $("#" + inpid).keydown(() => {
+            input.size = (input.value.length === 0) ? 1 : input.value.length;
+        });
+
+        var textId = inpid;
+        var ID = [];
+
+        // GET ALL IDs
+        $("*").each(function() {
+            if (this.id) {
+                ID.push(this.id);
+            }
+        });
+        $('#' + butid).click(() => {
+            var textValue = $('#' + inpid).val();
+            if (textValue !== "") {
+                $.ajax({
+                    url: "./php/insertText.php",
+                    method: "POST",
+                    data: { 
+                        tId: textId, 
+                        tVal: textValue, 
+                        tPost: topPost, 
+                        lPost: leftPost, 
+                        IDS: ID, 
+                        wall: currWall, 
+                        aId: alias, 
+                        fFace: inputFont, 
+                        fColor: inputColor, 
+                        fSize: inputSize,
+                    },
+                    dataType: "text",
+                    success: (data) => {
+                        $data = $.parseJSON(data);
+                        $inner = "";
+                        $data.forEach(elem => {
+                            $inner += elem + "</div>";
+                        });
+                        //console.log($inner);
+                        parent.innerHTML = $inner;
+
+                        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                          return new bootstrap.Tooltip(tooltipTriggerEl);
+                        });
+                    }
+                })
+            }
+        });
+
+    }
+    var clicker = false;
     mainOutDiv.forEach(div => {
         var divIn = div.inDiv;
-        $(div.maindiv).click(function(e){
-            var randomnumber = Math.floor(Math.random() * (999999 - 500 + 500)) + 999999;
-            var input = document.createElement("input");
-            var div = document.createElement("div");
+        $(div.maindiv).click(function(e) {
             var parent = document.getElementById(divIn);
+            $.ajax({
+                url: "./php/getText.php",
+                method: "POST",
+                async: false,
+                data: {wall: currWall},
+                dataType: "text",
+                success: (data) => {
+                    $data = $.parseJSON(data);
+                    $inner = "";
+                    $data.forEach(elem => {
+                        $inner += elem + "</div>";
+                    });
+                    //console.log($inner);
+                    parent.innerHTML = $inner;
 
-            var inpid = "inp" + randomnumber;
-            var divid = "div" + randomnumber;
-            input.id = inpid;
-            input.style = "border: 0; color: white; outline: none; background: transparent;";
-            div.style = "position: absolute;";
-            div.id = divid;
-
-            parent.appendChild(div); 
-            div.appendChild(input); 
-            $('#' + inpid).prop('maxLength', 20);
-            $('#' + divid).html(input.focus()).offset({ top: e.pageY, left: e.pageX});
-
-            input.focus();
-            //input.setSelectionRange(0, input.value.length)
-            input.scrollIntoView();
-
-
-            document.querySelector('#' + divid).scrollIntoView({
-              behavior: 'smooth'
-            });
-            var textId = inpid;
-            var position = $('#' + divid).position();
-
-            var leftPost = position.left/$(window).width() * 100;
-            var topPost = position.top/$(window).height() *100;
-            console.log(leftPost, topPost);
-            // var topPost = $('#' + divid).position().top;
-            // var leftPost = $('#' + divid).position().left;
-            var ID = [];
-
-            // GET ALL IDs
-            $("*").each(function() {
-                if (this.id) {
-                    ID.push(this.id);
+                    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                      return new bootstrap.Tooltip(tooltipTriggerEl);
+                    });
                 }
             });
-            $('#' + inpid).blur(() => {
-                var textValue = $('#' + inpid).val();
-                if (textValue !== "") {
-                    $.ajax({
-                        url: "./php/insertText.php",
-                        method: "POST",
-                        data: { tId: textId, tVal: textValue, tPost: topPost, lPost: leftPost, IDS: ID , wall: currWall, aId: alias},
-                        dataType: "text",
-                        success: (data) => {
-                            $data = $.parseJSON(data);
-                            $inner = "";
-                            $data.forEach(elem => {
-                                $inner += elem + "</div>";
-                            });
-                            //console.log($inner);
-                            parent.innerHTML = $inner;
-
-                            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-                            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                              return new bootstrap.Tooltip(tooltipTriggerEl);
-                            });
-                        }
-                    })
-                }
-            });
-
-          });
-
+            console.log(clicker);
+            if (!clicker) {
+                $(div.maindiv).click(mainClick(divIn, div.maindiv, e));
+            } else {
+                $(div.maindiv).unbind('click');
+            }
+        }
+        );
     });
     var maria = document.getElementById("outMaria");
     var rose = document.getElementById("outRose");
@@ -144,7 +244,36 @@ jQuery(document).ready(function(){
     container = 'body';
     $("#outRose").hide();
     $("#outSheena").hide();
+
+    var mainOutDiv = [ {wall: 1 , inDiv: "maria" }, {wall: 2 , inDiv: "rose" }, {wall: 3 , inDiv: "sheena" }];
     function nextFu(e) {
+        mainOutDiv.forEach(div => {
+            var divIn = div.inDiv;
+            var parent = document.getElementById(divIn);
+            $.ajax({
+                url: "./php/getText.php",
+                method: "POST",
+                async: true,
+                data: {wall: div.wall},
+                dataType: "text",
+                success: (data) => {
+                    $data = $.parseJSON(data);
+                    $inner = "";
+                    $data.forEach(elem => {
+                        $inner += elem + "</div>";
+                    });
+                    //console.log($inner);
+                    parent.innerHTML = $inner;
+
+                    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                      return new bootstrap.Tooltip(tooltipTriggerEl);
+                    });
+                }
+            });
+        });
+        var styles = document.getElementById("style");
+        styles.style.display = "none";
         var blockIn, blockOut;
         if(currWall === 1 ) {
             blockIn = "#outRose";
@@ -160,41 +289,38 @@ jQuery(document).ready(function(){
             currWall = (window.getComputedStyle(maria).getPropertyValue("display") === "block") ? 1 : (window.getComputedStyle(rose).getPropertyValue("display") === "block") ? 2 : 
                 (window.getComputedStyle(sheena).getPropertyValue("display") === "block") && 3;
         });
-        //(currWall === 1) && $('#prev').toggle("bounce", {direction: 'right'}, 1000);
-        //(currWall === 3) && $('#next').toggle("bounce", {direction: 'right'}, 1000);
-
-       // // var clone = $("#out").clone(); 
-       //  if(!iOS()) { 
-       //      // AnimateTransition({       
-       //      //     container: container,     
-       //      //     blockIn: blockIn,
-       //      //     blockOut: blockOut,
-       //      //     animation: "slide-in",
-       //      //     onTransitionStart: function (blockIn, blockOut, container, event) {
-       //      //         nextButton.setAttribute('disabled', 'disabled');
-       //      //         //(currWall === 2) && 
-       //      //     },
-       //      //     onTransitionEnd: function (blockIn, blockOut, container, event) {
-       //      //         nextButton.removeAttribute('disabled');
-       //      //         console.log(blockIn, blockOut)
-       //      //         blockIn.setAttribute('data-block', 'out');
-       //      //         blockOut.setAttribute('data-block', 'in');
-       //      //         container.appendChild(blockOut);
-       //      //         currWall = (maria.getAttribute("data-block") === "out") ? 1 : (rose.getAttribute("data-block") === "out") ? 2 : 
-       //      //                 (sheena.getAttribute("data-block") === "out") && 3;
-       //      //         var clone = $("#out").clone(); 
-       //      //         $("#out").remove();            
-       //      //         $("body").append(clone);                
-       //      //     }
-       //      // });
-       //  } else {
-
-       //  }
     };
 
     function prevFu(e) {
+        console.log((currWall - 1))
+        mainOutDiv.forEach(div => {
+            var divIn = div.inDiv;
+            var parent = document.getElementById(divIn);
+            $.ajax({
+                url: "./php/getText.php",
+                method: "POST",
+                async: true,
+                data: {wall: div.wall},
+                dataType: "text",
+                success: (data) => {
+                    $data = $.parseJSON(data);
+                    $inner = "";
+                    $data.forEach(elem => {
+                        $inner += elem + "</div>";
+                    });
+                    //console.log($inner);
+                    parent.innerHTML = $inner;
+
+                    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                      return new bootstrap.Tooltip(tooltipTriggerEl);
+                    });
+                }
+            });
+        });
+        var styles = document.getElementById("style");
+        styles.style.display = "none";
         var blockIn, blockOut;
-        console.log(currWall);
         if(currWall === 2) {
             $('#prev').hide("drop", {direction: 'left'});
             blockIn = "#outMaria";
@@ -209,28 +335,6 @@ jQuery(document).ready(function(){
             currWall = (window.getComputedStyle(maria).getPropertyValue("display") === "block") ? 1 : (window.getComputedStyle(rose).getPropertyValue("display") === "block") ? 2 : 
                 (window.getComputedStyle(sheena).getPropertyValue("display") === "block") && 3;
         });
-        // AnimateTransition({       
-        //     container: container,     
-        //     blockIn: blockIn,
-        //     blockOut: blockOut,
-        //     animation: "slide-out",
-        //     onTransitionStart: function (blockIn, blockOut, container, event) {
-        //         nextButton.setAttribute('disabled', 'disabled');
-        //         (currWall === 2) && $('#prev').hide("drop", {direction: 'left'});
-        //     },
-        //     onTransitionEnd: function (blockIn, blockOut, container, event) {
-        //         nextButton.removeAttribute('disabled');
-        //         console.log(blockIn, blockOut)
-        //         blockIn.setAttribute('data-block', 'out');
-        //         blockOut.setAttribute('data-block', 'in');
-        //         container.appendChild(blockOut);
-        //         currWall = (maria.getAttribute("data-block") === "out") ? 1 : (rose.getAttribute("data-block") === "out") ? 2 : 
-        //                 (sheena.getAttribute("data-block") === "out") && 3;
-        //         var clone = $("#out").clone(); 
-        //         $("#out").remove();            
-        //         $("body").append(clone);        
-        //     }
-        // });
     }
     $('#next').click(nextFu);
 
