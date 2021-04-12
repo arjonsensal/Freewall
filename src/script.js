@@ -2,7 +2,57 @@ jQuery(document).ready(function(){
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
       return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
+    });
+
+    var customOverlay = document.querySelector('#modalias');
+    var modsugg = document.querySelector('#modsugg');
+
+    $('#popup').modal({backdrop: 'static'});
+    $('#popup').modal('show');
+
+    function animateModal(modal, animation, onStart, onEnd) {
+        AnimateTransition({
+            container: container,
+            blockIn: modal,
+            animation: animation,
+            onTransitionStart: function (blockIn, blockOut, container, event) {
+                if(typeof onStart === "function") {
+                    onStart();
+                }
+            },
+            onTransitionEnd: function (blockIn, blockOut, container, event) {
+                if(typeof onEnd === "function") {
+                    onEnd();
+                }
+            }
+        });
+    }
+    var myModal = new bootstrap.Modal(document.getElementById('suggestMod'));
+    animateModal("#popup", "bounce-in", () => {customOverlay.style.display = 'block';});
+    var suggest = document.getElementById("suggestionText");
+    $("#suggestionText").keyup(() => {
+        if (suggest.value !== '') {
+            $('#send').prop("disabled", false); 
+        } else {
+            $('#send').prop("disabled", true); 
+        }
+    });
+    $("#send").click(() => {
+        var text = $("#suggestionText").val();
+        Email.send({
+            SecureToken: "20b9f0b1-0c18-4daa-86df-22be8ee11699",
+            To : 'thefreedomwall11@gmail.com',
+            From : "thefreedomwall11@gmail.com",
+            Subject : "Suggestion Box",
+            Body : text
+        });
+    });
+    $("#suggestion").click(() => {
+        suggest.value = "";
+        $('#suggestMod').modal('show');
+        animateModal("#suggestMod", "bounce-in");
+    });
+
     function iOS() {
       return [
         'iPad Simulator',
@@ -16,8 +66,6 @@ jQuery(document).ready(function(){
       || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
     }
 
-    $('#popup').modal({backdrop: 'static'});
-    $('#popup').modal('show');
     function closePopup(event) {
         AnimateTransition({
             blockOut: "#popup",
@@ -31,12 +79,11 @@ jQuery(document).ready(function(){
         });
     };
 
-    /* MODAL */
+    /* MODAL at start*/
     var alias = document.getElementById("alias");
     var nextButton = document.querySelector("#submit");
     $('#submit').prop("disabled", true); 
     $("#alias").keyup(() => {
-        console.log(alias.value)
         if (alias.value !== '') {
             $('#submit').prop("disabled", false); 
         } else {
@@ -57,22 +104,11 @@ jQuery(document).ready(function(){
         document.getElementById("out").style = "display: none;";
     }
     var mainOutDiv = [ {maindiv: "#outMaria" , inDiv: "maria" }, {maindiv: "#outRose" , inDiv: "rose" }, {maindiv: "#outSheena" , inDiv: "sheena" }];
-    var customOverlay = document.querySelector('.custom-overlay');
-
-    AnimateTransition({
-        container: container,
-        blockIn: "#popup",
-        animation: "bounce-in",
-        onTransitionStart: function (blockIn, blockOut, container, event) {
-            customOverlay.style.display = 'block';
-        },
-        onTransitionEnd: function (blockIn, blockOut, container, event) {
-        }
-    });
-    var oldChild;
+    var divid = "";
+    var clicked;
     function mainClick(divIn, main, e) {
         var parent = document.getElementById(divIn);
-
+        clicked = false;
         var empty;
         function inputFocus(input) {
             input.focus();
@@ -82,6 +118,19 @@ jQuery(document).ready(function(){
             }
             input.scrollIntoView();
         };
+        console.log(clicked, divid)
+        if (!clicked) {
+            var ID = [];
+            $("*").each(function() {
+                if (this.id) {
+                    ID.push(this.id);
+                }
+            });
+            if (ID.includes(divid)) {
+            var old = document.getElementById(divid);
+                old.remove();
+            }
+        }
 
         var randomnumber = Math.floor(Math.random() * (999999 - 500 + 500)) + 999999;
         var input = document.createElement("input");
@@ -91,7 +140,7 @@ jQuery(document).ready(function(){
 
         var butid = "but" + randomnumber;
         var inpid = "inp" + randomnumber;
-        var divid = "div" + randomnumber;
+        divid = "div" + randomnumber;
 
         post.id = butid;
         input.id = inpid;
@@ -162,10 +211,9 @@ jQuery(document).ready(function(){
                 ID.push(this.id);
             }
         });
-        $("#" + inpid).on('blur', function() {
-            document.getElementById(divid).remove();
-        });
+
         $('#' + butid).click(() => {
+            clicked = true;
             var textValue = $('#' + inpid).val();
             if (textValue !== "") {
                 $.ajax({
@@ -201,42 +249,12 @@ jQuery(document).ready(function(){
                 })
             }
         });
-
     }
-    var clicker = false;
     mainOutDiv.forEach(div => {
         var divIn = div.inDiv;
         $(div.maindiv).click(function(e) {
-            var parent = document.getElementById(divIn);
-            // $.ajax({
-            //     url: "./php/getText.php",
-            //     method: "POST",
-            //     async: false,
-            //     data: {wall: currWall},
-            //     dataType: "text",
-            //     success: (data) => {
-            //         $data = $.parseJSON(data);
-            //         $inner = "";
-            //         $data.forEach(elem => {
-            //             $inner += elem + "</div>";
-            //         });
-            //         //console.log($inner);
-            //         parent.innerHTML = $inner;
-
-            //         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            //         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            //           return new bootstrap.Tooltip(tooltipTriggerEl);
-            //         });
-            //     }
-            // });
-            console.log(clicker);
-            if (!clicker) {
-                $(div.maindiv).click(mainClick(divIn, div.maindiv, e));
-            } else {
-                $(div.maindiv).unbind('click');
-            }
-        }
-        );
+            mainClick(divIn, div.maindiv, e);
+        });
     });
     var maria = document.getElementById("outMaria");
     var rose = document.getElementById("outRose");

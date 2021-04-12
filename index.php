@@ -16,7 +16,8 @@ session_start();
 </head>
 <body>
 
-	<div class="custom-overlay"></div>
+	<div id="modalias" class="custom-overlay"></div>
+	<div id="modsugg" class="custom-overlay" ></div>
 	<div  id="style" class="container" tabindex="100" style="z-index: 10200; display: none; margin:0; position: absolute;">
 		<div class="btn-group" role="group">
   			<div class="btn-group mr-3" role="group">
@@ -118,8 +119,8 @@ session_start();
 			?>
 		</div>
 	</div> 
-	<div id="popup" class="modal" style="z-index: 2000;">
-	  <div class="modal-dialog modal-dialog-centered" role="document">
+	<div id="popup" class="modal" data-dismiss="modal" style="z-index: 2000;">
+	  <div class="modal-dialog modal-dialog-centered" role="document" style="z-index: 2004;">
 	    <div class="modal-content">
 	      <div class="modal-header text-center">
 	        <h5 class="modal-title w-100">Welcome to Freedom Wall</h5>
@@ -143,8 +144,38 @@ session_start();
 	    </div>
 	  </div>
 	</div>
+
+	<div id="suggestMod" class="modal fade" data-bs-backdrop="false" style="z-index: 2000;">
+	  <div class="modal-dialog modal-dialog-centered" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header text-center">
+	        <h5 class="modal-title w-100">Send a Suggestion</h5>
+	      </div>
+	      <div class="modal-body">
+	      	<div class="container text-center">
+	      		<img src="img/wall.png" class="img-fluid" style="max-width: 70%">
+	      		<hr/>
+		      	<form><div class="form-floating">
+				  <textarea class="form-control" placeholder="Leave a suggestion here" id="suggestionText" style="height: 100px"></textarea>
+				  <label for="floatingTextarea2">Want to add font? feature? a new wall?</label>
+				</div>
+				</form>
+	      	</div>
+	      </div>
+	      <div class="modal-footer">
+	        <button id="send" type="submit" data-bs-dismiss="modal" class="btn btn-dark">Send</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	<footer class="footer mt-auto py-2" style="background-color: transparent; position: fixed; bottom: 0; width:100%; z-index: 100">
+	  <div class="container text-end">
+	    <a id="suggestion" style="cursor:pointer; color: white;">Submit a suggestion</a>
+	  </div>
+	</footer>
 	<div id="out" style="cursor:pointer; position:fixed; padding:0; margin:0; top:0; left:0; width: 100%; height: 100%;"></div>
 </body>
+<script src="https://smtpjs.com/v3/smtp.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script
   src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
